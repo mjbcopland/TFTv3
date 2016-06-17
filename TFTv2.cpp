@@ -322,13 +322,9 @@ void TFT::setPixel(INT16U poX, INT16U poY,INT16U color)
 
 void TFT::drawChar( INT8U ascii, INT16U poX, INT16U poY,INT16U size, INT16U fgcolor)
 {
-    if((ascii>=32)&&(ascii<=127))
+    if(!isPrintable(ascii))
     {
-        ;
-    }
-    else
-    {
-        ascii = '?'-32;
+        ascii = '?';
     }
     for (int i =0; i<FONT_X; i++ ) {
         INT8U temp = pgm_read_byte(&simpleFont[ascii-0x20][i]);
@@ -344,7 +340,7 @@ void TFT::drawChar( INT8U ascii, INT16U poX, INT16U poY,INT16U size, INT16U fgco
     }
 }
 
-void TFT::drawString(char *string,INT16U poX, INT16U poY, INT16U size,INT16U fgcolor)
+void TFT::drawString(const char *string,INT16U poX, INT16U poY, INT16U size,INT16U fgcolor)
 {
     while(*string)
     {
@@ -356,6 +352,33 @@ void TFT::drawString(char *string,INT16U poX, INT16U poY, INT16U size,INT16U fgc
             poX += FONT_SPACE*size;                                     /* Move cursor right            */
         }
     }
+}
+
+void TFT::drawString(const String &string,INT16U poX, INT16U poY, INT16U size,INT16U fgcolor)
+{
+  drawString(string.c_str(),poX,poY,size,fgcolor);
+}
+
+void TFT::drawString(const __FlashStringHelper *string,INT16U poX, INT16U poY, INT16U size,INT16U fgcolor)
+{
+  PGM_P p = reinterpret_cast<PGM_P>(string);
+  while(1)
+  {
+    char c = pgm_read_byte(p++);
+
+    if(c == 0) {
+      break;
+    }
+    else
+    {
+      drawChar(c, poX, poY, size, fgcolor);
+    }
+
+    if(poX < MAX_X)
+    {
+        poX += FONT_SPACE*size;                                     /* Move cursor right            */
+    }
+  }
 }
 
 //fillRectangle(poX+i*size, poY+f*size, size, size, fgcolor);
